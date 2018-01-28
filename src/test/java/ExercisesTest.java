@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
@@ -18,21 +19,23 @@ import static org.junit.Assert.*;
 
 public class ExercisesTest {
 
-   private Exercises classToTest;
+    private Exercises classToTest;
 
-    static List<String> wordList = Arrays.asList(
+    private static List<String> wordList = Arrays.asList(
             "every", "problem", "in", "computer", "science",
             "can", "be", "solved", "by", "adding", "another",
             "level", "of", "indirection");
 
-    static final String REGEXP = "\\W+"; // for splitting into words
+    static final String REGEX = "\\W+"; // for splitting into words
 
     private BufferedReader reader;
+    private Path path;
 
     @Before
     public void setUpBufferedReader() throws IOException, URISyntaxException {
         classToTest = new Exercises();
-        reader = Files.newBufferedReader(Paths.get(getClass().getResource("/testFile.txt").toURI()), StandardCharsets.UTF_8);
+        path = Paths.get(getClass().getResource("/testFile.txt").toURI());
+        reader = Files.newBufferedReader(path, StandardCharsets.UTF_8);
     }
 
     @After
@@ -47,7 +50,7 @@ public class ExercisesTest {
     public void upperCaseWords() {
         //Given
         //When
-        List<String> result = null; /* TODO */
+        List<String> result = classToTest.convertToUpperCase(wordList); /* TODO */
 
         //Then
         assertThat(result, is(Arrays.asList(
@@ -63,15 +66,13 @@ public class ExercisesTest {
     public void findEvenLengthWords() {
         //Given
         //When
-        List<String> result =null;
+        List<String> result = classToTest.retrieveEvenLengthWords(wordList);
 
         //Then
         assertThat(result, is(Arrays.asList("in", "computer", "be", "solved", "by", "adding", "of")));
     }
 
-// Exercise: Count the number of lines in a file. The field *reader*
-// is a BufferedReader which will be opened for you on the text file.
-// See the JUnit @Before and @After methods at the top of this file.
+// Exercise: Count the number of lines in a file.
 // The text file is "testFile.txt" (Shakespeare's first sonnet) which is
 // located at the resources folder.
 
@@ -79,7 +80,7 @@ public class ExercisesTest {
     public void countLinesInFile() throws IOException {
         //Given
         //When
-        int result = 0;
+        int result = classToTest.countLinesInFile(path);
 
         //Then
         assertThat(result, is(14));
@@ -90,8 +91,10 @@ public class ExercisesTest {
     @Test
     public void joinLineRange() throws IOException {
         //Given
+        List<String> fileLines = Files.readAllLines(path);
+
         //When
-        String result = null; /* TODO */
+        String result = classToTest.joinLineRange(fileLines,3, 4);
 
         //Then
         assertThat(result, is(
@@ -105,22 +108,22 @@ public class ExercisesTest {
     public void lengthOfLongestLine() throws IOException {
         //Given
         //When
-        int result = 0; /* TODO */
-        
+        int result = classToTest.longestLine(Files.lines(path));
+
         //Then
         assertThat(result, is(53));
     }
 
 // Exercise: Collect all the words from the text file into a list.
-// Hint: use String.split(REGEXP) to split a string into words.
+// Hint: use String.split(REGEX) to split a string into words.
 // Splitting this way results in "words" that are the empty string,
-// which should be discarded. REGEXP is defined at the bottom of this file.
+// which should be discarded. REGEX is defined at the top of this file.
 
     @Test
     public void listOfAllWords() throws IOException {
         //Given
         //When
-        List<String> result = null; /* TODO */
+        List<String> result = classToTest.listOfAllWords(Files.lines(path), REGEX);
 
         //Then
         assertThat(result, is(Arrays.asList(
@@ -147,8 +150,8 @@ public class ExercisesTest {
     public void sortedLowerCase() throws IOException {
         //Given
         //When
-        List<String> result = null; /* TODO */
-        
+        List<String> result = classToTest.sortedLowerCase(Files.lines(path), REGEX);
+
         //Then
         assertThat(result, is(Arrays.asList(
                         "a", "abundance", "and", "and", "and", "art", "as", "be",
@@ -176,8 +179,8 @@ public class ExercisesTest {
     public void sortedLowerCaseDistinctByLengthThenAlphabetically() throws IOException {
         //Given
         //When
-        List<String> result = null; /* TODO */
-        
+        List<String> result = classToTest.sortedLowerCaseDistinctByLengthThenAlphabetically(Files.lines(path), REGEX);
+
         //Then
         assertThat(result, is(Arrays.asList(
                         "a", "s", "as", "be", "by", "in", "or", "st", "to", "we",
@@ -195,6 +198,7 @@ public class ExercisesTest {
                         "substantial")));
     }
 
+
 // Exercise: Categorize the words into a map, where the map's key is
 // the length of each word, and the value corresponding to a key is a
 // list of words of that length. Don't bother with uniqueness or lower-
@@ -204,15 +208,15 @@ public class ExercisesTest {
     public void mapLengthToWordList() throws IOException {
         //Given
         //When
-        Map<Integer, List<String>> map = null; /* TODO */
-        
+        Map<Integer, List<String>> map = classToTest.mapLengthToWordList(Files.lines(path), REGEX);
+
         //Then
+        assertThat(map.size(), is(11));
         assertThat(map.get(7).size(), is(6));
         assertThat(map.get(8), is(Arrays.asList("increase", "ornament")));
         assertThat(map.get(9), is(Arrays.asList("creatures", "abundance")));
         assertThat(map.get(10), is(Arrays.asList("contracted", "niggarding")));
         assertThat(map.get(11), is(Arrays.asList("substantial")));
-        assertThat(map.containsKey(12), is(true));
     }
 
 // Exercise: Gather the words into a map, accumulating a count of the
@@ -224,14 +228,29 @@ public class ExercisesTest {
     public void wordFrequencies() throws IOException {
         //Given
         //When
-        Map<String, Long> map = null; /* TODO */
-        
+        Map<String, Long> map = classToTest.wordFrequencies(Files.lines(path), REGEX);
+
         //Then
-        assertThat((long)map.get("tender"), is(2L));
-        assertThat((long)map.get("the"), is(6L));
-        assertThat((long)map.get("churl"), is(1L));
-        assertThat((long)map.get("thine"), is(2L));
-        assertThat((long)map.get("world"), is(3L));
+        assertThat(map.get("tender"), is(2L));
+        assertThat(map.get("the"), is(6L));
+        assertThat(map.get("churl"), is(1L));
+        assertThat(map.get("thine"), is(2L));
+        assertThat(map.get("world"), is(3L));
+        assertThat(map.containsKey("lambda"), is(false));
+    }
+
+    @Test
+    public void wordFrequenciesUsingToMap() throws IOException {
+        //Given
+        //When
+        Map<String, Integer> map = classToTest.wordFrequenciesUsingToMap(Files.lines(path), REGEX);
+
+        //Then
+        assertThat(map.get("tender"), is(2));
+        assertThat(map.get("the"), is(6));
+        assertThat(map.get("churl"), is(1));
+        assertThat(map.get("thine"), is(2));
+        assertThat(map.get("world"), is(3));
         assertThat(map.containsKey("lambda"), is(false));
     }
 
@@ -246,16 +265,16 @@ public class ExercisesTest {
 //     {f={3=[foo]}, b={3=[bar, baz], 4=[bazz]}}.
 
     @Test
-   
     public void nestedMaps() throws IOException {
         //Given
         //When
-        Map<String, Map<Integer, List<String>>> map = null; /* TODO */
-        
+        Map<String, Map<Integer, List<String>>> map = classToTest.nestedMaps(Files.lines(path), REGEX);
+
         //Then
         assertThat(map.get("F").get(4).toString(), is("[From, Feed]") );
         assertThat(map.get("b").get(2).toString(), is("[by, be, by]"));
         assertThat(map.get("t").get(3).toString(), is("[the, thy, thy, thy, too, the, the, thy, the, the, the]"));
         assertThat(map.get("b").get(6).toString(), is("[beauty, bright]"));
     }
+
 }
